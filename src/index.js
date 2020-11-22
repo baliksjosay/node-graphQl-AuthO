@@ -21,17 +21,31 @@ const context = async req => {
     return { db, token };
   };
 const resolvers = {
+    // events: async (_, context) => {
+    //   const { db } = await context();
+    //   return db
+    //     .collection('events')
+    //     .find()
+    //     .toArray();
+    // },
+    // event: async ({ id }, context) => {
+    //   const { db } = await context();
+    //   return db.collection('events').findOne({ id });
+    // },
     events: async (_, context) => {
-      const { db } = await context();
-      return db
-        .collection('events')
-        .find()
-        .toArray();
-    },
-    event: async ({ id }, context) => {
-      const { db } = await context();
-      return db.collection('events').findOne({ id });
-    },
+        const { db, token } = await context();
+        const { error } = await isTokenValid(token);
+        const events = db.collection("events").find();
+        return !error
+          ? events.toArray()
+          : events.project({ attendants: null }).toArray();
+      },
+      event: async ({ id }, context) => {
+        const { db, token } = await context();
+        const { error } = await isTokenValid(token);
+        const event = await db.collection("events").findOne({ id });
+        return !error ? event : { ...event, attendants: null };
+      },
     editEvent: async ({ id, title, description }, context) => {
         const { db, token } = await context();
     
